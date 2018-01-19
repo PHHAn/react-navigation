@@ -3,9 +3,11 @@
 export const Linking = {
   addEventListener: () => {},
   removeEventListener: () => {},
-  getInitialURL: () => Promise.reject('Unsupported platform'),
+  getInitialURL: (() => Promise.reject('Unsupported platform'): () => Promise<
+    string
+  >),
 };
 
-export const BackAndroid = {
+export const BackHandler = {
   addEventListener: () => {},
 };

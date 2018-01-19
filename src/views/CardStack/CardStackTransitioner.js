@@ -1,59 +1,47 @@
 /* @flow */
 
-import React, { Component } from 'react';
-import { NativeModules, View } from 'react-native';
+import * as React from 'react';
+import { NativeModules } from 'react-native';
 
 import CardStack from './CardStack';
 import CardStackStyleInterpolator from './CardStackStyleInterpolator';
-import Transitioner from './Transitioner';
+import Transitioner from '../Transitioner';
 import TransitionConfigs from './TransitionConfigs';
-import Header from './Header';
-
-const NativeAnimatedModule = NativeModules &&
-  NativeModules.NativeAnimatedModule;
 
 import type {
-  NavigationAction,
   NavigationSceneRenderer,
   NavigationScreenProp,
   NavigationStackScreenOptions,
   NavigationState,
   NavigationTransitionProps,
+  NavigationNavigatorProps,
   NavigationRouter,
   HeaderMode,
-  Style,
-} from '../TypeDefinition';
+  ViewStyleProp,
+  TransitionConfig,
+} from '../../TypeDefinition';
 
-import type { TransitionConfig } from './TransitionConfigs';
+const NativeAnimatedModule =
+  NativeModules && NativeModules.NativeAnimatedModule;
 
 type Props = {
-  screenProps?: {},
   headerMode: HeaderMode,
-  headerComponent?: ReactClass<*>,
   mode: 'card' | 'modal',
-  navigation: NavigationScreenProp<NavigationState, NavigationAction>,
-  router: NavigationRouter<NavigationState, NavigationAction, NavigationStackScreenOptions>,
-  cardStyle?: Style,
+  router: NavigationRouter<NavigationState, NavigationStackScreenOptions>,
+  cardStyle?: ViewStyleProp,
   onTransitionStart?: () => void,
   onTransitionEnd?: () => void,
-  style: Style,
   /**
    * Optional custom animation when transitioning between screens.
    */
   transitionConfig?: () => TransitionConfig,
-};
+} & NavigationNavigatorProps<NavigationStackScreenOptions, NavigationState>;
 
-type DefaultProps = {
-  mode: 'card' | 'modal',
-  headerComponent: ReactClass<*>,
-};
-
-class CardStackTransitioner extends Component<DefaultProps, Props, void> {
+class CardStackTransitioner extends React.Component<Props> {
   _render: NavigationSceneRenderer;
 
-  static defaultProps: DefaultProps = {
+  static defaultProps = {
     mode: 'card',
-    headerComponent: Header,
   };
 
   render() {
@@ -62,7 +50,6 @@ class CardStackTransitioner extends Component<DefaultProps, Props, void> {
         configureTransition={this._configureTransition}
         navigation={this.props.navigation}
         render={this._render}
-        style={this.props.style}
         onTransitionStart={this.props.onTransitionStart}
         onTransitionEnd={this.props.onTransitionEnd}
       />
@@ -73,7 +60,7 @@ class CardStackTransitioner extends Component<DefaultProps, Props, void> {
     // props for the new screen
     transitionProps: NavigationTransitionProps,
     // props for the old screen
-    prevTransitionProps: NavigationTransitionProps
+    prevTransitionProps: ?NavigationTransitionProps
   ) => {
     const isModal = this.props.mode === 'modal';
     // Copy the object so we can assign useNativeDriver below
@@ -83,13 +70,13 @@ class CardStackTransitioner extends Component<DefaultProps, Props, void> {
         this.props.transitionConfig,
         transitionProps,
         prevTransitionProps,
-        isModal,
+        isModal
       ).transitionSpec,
     };
     if (
       !!NativeAnimatedModule &&
       // Native animation support also depends on the transforms used:
-      CardStackStyleInterpolator.canUseNativeDriver(isModal)
+      CardStackStyleInterpolator.canUseNativeDriver()
     ) {
       // Internal undocumented prop
       transitionSpec.useNativeDriver = true;
@@ -97,25 +84,24 @@ class CardStackTransitioner extends Component<DefaultProps, Props, void> {
     return transitionSpec;
   };
 
-  _render = (props: NavigationTransitionProps): React.Element<*> => {
+  _render = (props: NavigationTransitionProps): React.Node => {
     const {
       screenProps,
-      headerComponent,
       headerMode,
       mode,
       router,
-      style,
       cardStyle,
+      transitionConfig,
     } = this.props;
+
     return (
       <CardStack
         screenProps={screenProps}
-        headerComponent={headerComponent}
         headerMode={headerMode}
         mode={mode}
         router={router}
         cardStyle={cardStyle}
-        style={style}
+        transitionConfig={transitionConfig}
         {...props}
       />
     );

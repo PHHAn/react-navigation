@@ -1,14 +1,12 @@
 /* @flow */
 
-import React from 'react';
+import * as React from 'react';
 
-import invariant from 'fbjs/lib/invariant';
+import invariant from '../../utils/invariant';
 
-import AnimatedValueSubscription from './AnimatedValueSubscription';
+import AnimatedValueSubscription from '../AnimatedValueSubscription';
 
-import type {
-  NavigationSceneRendererProps,
-} from '../TypeDefinition';
+import type { NavigationSceneRendererProps } from '../../TypeDefinition';
 
 type Props = NavigationSceneRendererProps;
 
@@ -20,16 +18,14 @@ const MIN_POSITION_OFFSET = 0.01;
  * changes.
  */
 export default function create(
-  Component: ReactClass<*>,
-): ReactClass<*> {
-  class Container extends React.Component<any, Props, any> {
+  Component: React.ComponentType<*>
+): React.ComponentType<*> {
+  class Container extends React.Component<Props> {
     _component: any;
     _onComponentRef: (view: any) => void;
-    _onPositionChange: (data: {value: number}) => void;
+    _onPositionChange: (data: { value: number }) => void;
     _pointerEvents: string;
     _positionListener: ?AnimatedValueSubscription;
-
-    props: Props;
 
     constructor(props: Props, context: any) {
       super(props, context);
@@ -69,7 +65,7 @@ export default function create(
       if (component) {
         invariant(
           typeof component.setNativeProps === 'function',
-          'component must implement method `setNativeProps`',
+          'component must implement method `setNativeProps`'
         );
       }
     }
@@ -78,7 +74,7 @@ export default function create(
       this._positionListener && this._positionListener.remove();
       this._positionListener = new AnimatedValueSubscription(
         props.position,
-        this._onPositionChange,
+        this._onPositionChange
       );
     }
 
@@ -93,17 +89,11 @@ export default function create(
     }
 
     _computePointerEvents(): string {
-      const {
-        navigation,
-        position,
-        scene,
-      } = this.props;
+      const { navigation, position, scene } = this.props;
 
       if (scene.isStale || navigation.state.index !== scene.index) {
         // The scene isn't focused.
-        return scene.index > navigation.state.index ?
-          'box-only' :
-          'none';
+        return scene.index > navigation.state.index ? 'box-only' : 'none';
       }
 
       const offset = position.__getAnimatedValue() - navigation.state.index;
